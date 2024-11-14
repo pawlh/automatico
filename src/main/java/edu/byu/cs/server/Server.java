@@ -36,6 +36,20 @@ public class Server {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
 
+    private record ProgramArgument(String name, String description) {}
+
+    private static final ProgramArgument[] PROGRAM_ARGUMENTS = {
+            new ProgramArgument("db-host", "Database Host"),
+            new ProgramArgument("db-port", "Database Port"),
+            new ProgramArgument("db-name", "Database Name"),
+            new ProgramArgument("db-user", "Database User"),
+            new ProgramArgument("db-pass", "Database Password"),
+            new ProgramArgument("frontend-url", "Frontend URL"),
+            new ProgramArgument("cas-callback-url","CAS Callback URL"),
+            new ProgramArgument("canvas-token", "Canvas Token"),
+            new ProgramArgument("use-canvas", "Using Canvas"),
+    };
+
     public static int setupEndpoints(int port) {
         app = Javalin.create(config -> {
             config.staticFiles.add("/frontend/dist");
@@ -174,32 +188,11 @@ public class Server {
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
-            if (cmd.hasOption("db-host")) {
-                properties.setProperty("db-host", cmd.getOptionValue("db-host"));
-            }
-            if (cmd.hasOption("db-port")) {
-                properties.setProperty("db-port", cmd.getOptionValue("db-port"));
-            }
-            if (cmd.hasOption("db-name")) {
-                properties.setProperty("db-name", cmd.getOptionValue("db-name"));
-            }
-            if (cmd.hasOption("db-user")) {
-                properties.setProperty("db-user", cmd.getOptionValue("db-user"));
-            }
-            if (cmd.hasOption("db-pass")) {
-                properties.setProperty("db-pass", cmd.getOptionValue("db-pass"));
-            }
-            if (cmd.hasOption("frontend-url")) {
-                properties.setProperty("frontend-url", cmd.getOptionValue("frontend-url"));
-            }
-            if (cmd.hasOption("cas-callback-url")) {
-                properties.setProperty("cas-callback-url", cmd.getOptionValue("cas-callback-url"));
-            }
-            if (cmd.hasOption("canvas-token")) {
-                properties.setProperty("canvas-token", cmd.getOptionValue("canvas-token"));
-            }
-            if (cmd.hasOption("use-canvas")) {
-                properties.setProperty("use-canvas", cmd.getOptionValue("use-canvas"));
+            for (ProgramArgument programArgument : PROGRAM_ARGUMENTS) {
+                String name = programArgument.name();
+                if (cmd.hasOption(name)) {
+                    properties.setProperty(name, cmd.getOptionValue(name));
+                }
             }
             if (cmd.hasOption("disable-compilation")) {
                 properties.setProperty("run-compilation", "false");
@@ -213,15 +206,9 @@ public class Server {
 
     private static Options getOptions() {
         Options options = new Options();
-        options.addOption(null, "db-host", true, "Database Host");
-        options.addOption(null, "db-port", true, "Database Port");
-        options.addOption(null, "db-name", true, "Database Name");
-        options.addOption(null, "db-user", true, "Database User");
-        options.addOption(null, "db-pass", true, "Database Password");
-        options.addOption(null, "frontend-url", true, "Frontend URL");
-        options.addOption(null, "cas-callback-url", true, "CAS Callback URL");
-        options.addOption(null, "canvas-token", true, "Canvas Token");
-        options.addOption(null, "use-canvas", true, "Using Canvas");
+        for (ProgramArgument arg : PROGRAM_ARGUMENTS) {
+            options.addOption(null, arg.name(), true, arg.description());
+        }
         options.addOption(null, "disable-compilation", false, "Turn off student code compilation");
         return options;
     }

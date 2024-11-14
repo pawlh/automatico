@@ -8,11 +8,14 @@ import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.model.User;
+import io.javalin.http.Context;
 import io.javalin.http.Handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static edu.byu.cs.util.JwtUtils.validateToken;
+
+import static edu.byu.cs.controller.HandlerWrapper.*;
 
 public class AuthController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
@@ -52,17 +55,11 @@ public class AuthController {
         ctx.sessionAttribute("user", user);
     };
 
-    public static final Handler verifyAdminMiddleware = ctx -> {
-        User user = ctx.sessionAttribute("user");
-
+    public static final Handler verifyAdminMiddleware = withUser((ctx, user) -> {
         if (user.role() != User.Role.ADMIN) {
             throw new ResourceForbiddenException();
         }
-    };
+    });
 
-    public static final Handler meGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
-        ctx.json(user);
-    };
-
+    public static final Handler meGet = withUser(Context::json);
 }

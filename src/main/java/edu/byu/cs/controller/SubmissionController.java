@@ -16,32 +16,27 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+import static edu.byu.cs.controller.HandlerWrapper.*;
+
 public class SubmissionController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SubmissionController.class);
 
-    public static final Handler submitPost = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public static final Handler submitPost = getSubmitPostHandler(false);
+    public static final Handler adminRepoSubmitPost = getSubmitPostHandler(true);
 
-        GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request != null) {
-            SubmissionService.submit(user, request);
-        }
-    };
+    private static Handler getSubmitPostHandler(boolean isAdmin) {
+        return withUser((ctx, user) -> {
+            GradeRequest request = validateAndUnpackRequest(ctx, user);
+            if (isAdmin) {
+                SubmissionService.adminRepoSubmit(user.netId(), request);
+            } else {
+                SubmissionService.submit(user, request);
+            }
+        });
+    }
 
-    public static final Handler adminRepoSubmitPost = ctx -> {
-        User user = ctx.sessionAttribute("user");
-
-        GradeRequest request = validateAndUnpackRequest(ctx);
-        if (request == null) {
-            return;
-        }
-
-        SubmissionService.adminRepoSubmit(user.netId(), request);
-    };
-
-    private static GradeRequest validateAndUnpackRequest(Context ctx) throws DataAccessException, BadRequestException {
-        User user = ctx.sessionAttribute("user");
+    private static GradeRequest validateAndUnpackRequest(Context ctx, User user) throws DataAccessException, BadRequestException {
         String netId = user.netId();
 
         if (DaoService.getQueueDao().isAlreadyInQueue(netId)) {
@@ -66,19 +61,17 @@ public class SubmissionController {
         return request;
     }
 
-    public static final Handler submitGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public static final Handler submitGet = withUser((ctx, user) -> {
         boolean inQueue = SubmissionService.isAlreadyInQueue(user.netId());
         ctx.json(Map.of("inQueue", inQueue));
-    };
+    });
 
-    public static final Handler latestSubmissionForMeGet = ctx -> {
-        User user = ctx.sessionAttribute("user");
+    public static final Handler latestSubmissionForMeGet = withUser((ctx, user) -> {
         Submission submission = SubmissionService.getLastSubmissionForUser(user.netId());
         ctx.json(submission);
-    };
+    });
 
-    public static final Handler submissionXGet = ctx -> {
+    public static final Handler submissionXGet = withUser((ctx, user) -> {
         String phaseString = ctx.pathParam("phase");
         Phase phase;
 
@@ -89,10 +82,9 @@ public class SubmissionController {
             throw new BadRequestException("Invalid phase", e);
         }
 
-        User user = ctx.sessionAttribute("user");
         Collection<Submission> submissions = SubmissionService.getXSubmissionsForUser(user.netId(), phase);
         ctx.json(submissions);
-    };
+    });
 
     public static final Handler latestSubmissionsGet = ctx -> {
         // TODO add capability to not give a count--in which case, set it to -1, which gets all latest submissions
@@ -116,11 +108,10 @@ public class SubmissionController {
         ctx.json(submissions);
     };
 
-    public static final Handler approveSubmissionPost = ctx -> {
-        User adminUser = ctx.sessionAttribute("user");
+    public static final Handler approveSubmissionPost = withUser((ctx, admin) -> {
         ApprovalRequest request = ctx.bodyAsClass(ApprovalRequest.class);
-        SubmissionService.approveSubmission(adminUser.netId(), request);
-    };
+        SubmissionService.approveSubmission(admin.netId(), request);
+    });
 
     public static final Handler submissionsReRunPost = ctx -> {
         SubmissionService.reRunSubmissionsInQueue();
