@@ -80,6 +80,9 @@ public class AdminService {
         User latestTestStudent;
         try {
             latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
+            if (latestTestStudent == null) {
+                throw new CanvasException("No test student provided by CanvasIntegration");
+            }
         } catch (CanvasException e) {
             LOGGER.error("Error getting test student", e);
             throw e;
