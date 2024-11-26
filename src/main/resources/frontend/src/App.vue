@@ -55,8 +55,6 @@ const repoEditDone = () => {
     <BannerMessage/>
   </header>
   <main>
-    <NavBar/>
-
     <PopUp
       id="repoEditorPopUp"
       v-if="openRepoEditor.value"
@@ -64,6 +62,8 @@ const repoEditDone = () => {
       <RepoEditor
       @repoEditSuccess="repoEditDone" :user="useAuthStore().user"/>
     </PopUp>
+
+    <NavBar v-if="useAuthStore().isLoggedIn && useAuthStore().user?.role == 'STUDENT'"/>
 
     <router-view/>
     <AboutPage/>

@@ -9,6 +9,7 @@ import HonorChecker from "@/views/AutograderViews/AdminView/HonorChecker.vue";
 import {useAdminStore} from "@/stores/admin";
 import StudentsView from "@/views/AutograderViews/AdminView/StudentsView.vue";
 import ConfigView from '@/views/AutograderViews/AdminView/ConfigView.vue'
+import AdminHelpQueue from '@/views/HelpQueueViews/AdminHelpQueue.vue'
 
 useAdminStore().updateUsers();
 
@@ -17,6 +18,9 @@ useAdminStore().updateUsers();
 <template>
   <div class="container">
     <Tabs>
+      <Tab title="Help Queue">
+        <AdminHelpQueue/>
+      </Tab>
       <Tab title="Submissions">
         <SubmissionsView/>
         <QueueStatus/>
