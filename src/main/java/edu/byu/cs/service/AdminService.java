@@ -77,16 +77,7 @@ public class AdminService {
     }
 
     public static User updateTestStudent() throws CanvasException, DataAccessException {
-        User latestTestStudent;
-        try {
-            latestTestStudent = CanvasService.getCanvasIntegration().getTestStudent();
-            if (latestTestStudent == null) {
-                throw new CanvasException("No test student provided by CanvasIntegration");
-            }
-        } catch (CanvasException e) {
-            LOGGER.error("Error getting test student", e);
-            throw e;
-        }
+        User latestTestStudent = getCanvasTestStudent();
 
         UserDao userDao = DaoService.getUserDao();
         User user;
@@ -121,6 +112,19 @@ public class AdminService {
 
         return user;
 
+    }
+
+    private static User getCanvasTestStudent() throws CanvasException {
+        try {
+            User testStudent = CanvasService.getCanvasIntegration().getTestStudent();
+            if (testStudent == null) {
+                throw new CanvasException("No test student provided by CanvasIntegration");
+            }
+            return testStudent;
+        } catch (CanvasException e) {
+            LOGGER.error("Error getting test student", e);
+            throw e;
+        }
     }
 
     public static String getCommitAnalytics(String option) throws CanvasException, DataAccessException {
