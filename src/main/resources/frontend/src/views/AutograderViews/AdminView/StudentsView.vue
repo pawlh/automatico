@@ -7,7 +7,7 @@ import {onMounted, reactive, ref} from "vue";
 import {testStudentModeGet, usersGet} from "@/services/adminService";
 import PopUp from "@/components/PopUp.vue";
 import type {User} from "@/types/types";
-import StudentInfo from "@/views/AdminView/StudentInfo.vue";
+import StudentInfo from "@/views/AutograderViews/AdminView/StudentInfo.vue";
 import {renderRepoLinkCell, standardColSettings} from "@/utils/tableUtils";
 import Panel from "@/components/Panel.vue";
 

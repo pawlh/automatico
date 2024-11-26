@@ -7,7 +7,7 @@ import {
   submissionScoreDisplayText
 } from '@/utils/utils'
 import PopUp from '@/components/PopUp.vue'
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
+import SubmissionInfo from '@/views/AutograderViews/StudentView/SubmissionInfo.vue'
 import { ref } from 'vue'
 
 defineProps<{

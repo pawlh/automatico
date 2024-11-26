@@ -12,6 +12,7 @@ import PopUp from '@/components/PopUp.vue'
 import RepoEditor from '@/components/RepoEditor.vue'
 import AboutPage from '@/components/AboutPage.vue'
 import { ServerError } from '@/network/ServerError'
+import NavBar from '@/components/NavBar.vue'
 
 const greeting = computed(() => {
   if (useAuthStore().isLoggedIn) {
@@ -47,13 +48,15 @@ const repoEditDone = () => {
 
 <template>
   <header>
-    <h1>CS 240 Autograder</h1>
-    <h3>This is where you can submit your assignments and view your scores.</h3>
+    <h1>CS 240</h1>
+    <h4>Get TA help or run your code through the Autograder</h4>
     <p>{{ greeting }} <a v-if="useAuthStore().isLoggedIn" @click="logOut">Logout</a></p>
     <p>{{ useAuthStore().user?.repoUrl }}</p>
     <BannerMessage/>
   </header>
   <main>
+    <NavBar/>
+
     <PopUp
       id="repoEditorPopUp"
       v-if="openRepoEditor.value"

@@ -1,5 +1,5 @@
 import type {CanvasSection, Phase, Submission, User } from '@/types/types'
-import type {Option} from "@/views/AdminView/Analytics.vue";
+import type {Option} from "@/views/AutograderViews/AdminView/Analytics.vue";
 import { ServerCommunicator } from '@/network/ServerCommunicator'
 
 export const usersGet = (): Promise<User[]> => {

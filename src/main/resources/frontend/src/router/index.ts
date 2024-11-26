@@ -1,9 +1,10 @@
 import {createRouter, createWebHistory} from 'vue-router'
-import HomeView from "@/views/HomeView.vue";
-import LoginView from "@/views/LoginView.vue";
+import HomeView from "@/views/AutograderViews/HomeView.vue";
 import {useAuthStore} from "@/stores/auth";
-import AdminView from "@/views/AdminView/AdminView.vue";
+import AdminView from "@/views/AutograderViews/AdminView/AdminView.vue";
+import HelpQueueHome from '@/views/HelpQueueViews/HelpQueueHome.vue'
 import RegisterView from '@/views/RegisterView.vue'
+import LoginView from '@/views/LoginView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +22,11 @@ const router = createRouter({
                 if (useAuthStore().user?.role === 'ADMIN')
                     return '/admin'
             }
+        },
+        {
+            path: '/help',
+            name: 'help',
+            component: HelpQueueHome
         },
         {
             path: '/register',

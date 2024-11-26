@@ -5,10 +5,10 @@ import {useSubmissionStore} from "@/stores/submissions";
 import { Phase, type Submission } from '@/types/types'
 import { uiConfig } from '@/stores/uiConfig'
 import { submissionPost } from '@/services/submissionService'
-import LiveStatus from '@/views/StudentView/LiveStatus.vue'
-import SubmissionHistory from '@/views/StudentView/SubmissionHistory.vue'
+import LiveStatus from '@/views/AutograderViews/StudentView/LiveStatus.vue'
+import SubmissionHistory from '@/views/AutograderViews/StudentView/SubmissionHistory.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
-import ResultsPreview from '@/views/StudentView/ResultsPreview.vue'
+import ResultsPreview from '@/views/AutograderViews/StudentView/ResultsPreview.vue'
 import {useAppConfigStore} from "@/stores/appConfig";
 import ShutdownWarning from '@/components/ShutdownWarning.vue'
 

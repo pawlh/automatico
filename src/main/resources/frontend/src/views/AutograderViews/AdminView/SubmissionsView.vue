@@ -14,11 +14,11 @@ import {
   renderScoreCell,
   renderTimestampCell
 } from "@/utils/tableUtils";
-import StudentInfo from "@/views/AdminView/StudentInfo.vue";
+import StudentInfo from "@/views/AutograderViews/AdminView/StudentInfo.vue";
 import { generateClickableLink, isPlausibleRepoUrl, nameFromNetId } from '@/utils/utils'
 import {adminSubmissionPost} from "@/services/submissionService";
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
-import LiveStatus from '@/views/StudentView/LiveStatus.vue'
+import SubmissionInfo from '@/views/AutograderViews/StudentView/SubmissionInfo.vue'
+import LiveStatus from '@/views/AutograderViews/StudentView/LiveStatus.vue'
 import { useSubmissionStore } from '@/stores/submissions'
 import InfoPanel from "@/components/InfoPanel.vue";
 

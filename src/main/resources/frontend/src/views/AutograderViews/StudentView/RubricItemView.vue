@@ -2,7 +2,7 @@
 import type { RubricItem } from '@/types/types'
 import { resultsScoreDisplayText, sanitizeHtml } from '@/utils/utils'
 import MoreInfo from '@/components/MoreInfo.vue'
-import RubricItemResultsView from '@/views/StudentView/RubricItemResultsView.vue'
+import RubricItemResultsView from '@/views/AutograderViews/StudentView/RubricItemResultsView.vue'
 
 defineProps<{
   rubricItem: RubricItem;

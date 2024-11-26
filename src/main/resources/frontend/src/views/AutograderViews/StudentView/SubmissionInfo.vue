@@ -12,7 +12,7 @@ import {
   submissionScoreDisplayText,
   sortedItems
 } from '@/utils/utils'
-import RubricItemView from '@/views/StudentView/RubricItemView.vue'
+import RubricItemView from '@/views/AutograderViews/StudentView/RubricItemView.vue'
 import InfoPanel from '@/components/InfoPanel.vue'
 import { useAuthStore } from '@/stores/auth'
 import { approveSubmissionPost } from '@/services/adminService'

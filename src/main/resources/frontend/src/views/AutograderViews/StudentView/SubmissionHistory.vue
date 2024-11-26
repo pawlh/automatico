@@ -6,7 +6,7 @@ import { submissionsGet } from '@/services/submissionService'
 import { AgGridVue } from 'ag-grid-vue3'
 import PopUp from '@/components/PopUp.vue'
 import type { CellClickedEvent } from 'ag-grid-community'
-import SubmissionInfo from '@/views/StudentView/SubmissionInfo.vue'
+import SubmissionInfo from '@/views/AutograderViews/StudentView/SubmissionInfo.vue'
 
 
 onMounted(async () => { await loadSubmissions() })
