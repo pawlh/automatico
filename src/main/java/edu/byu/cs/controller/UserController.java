@@ -4,68 +4,48 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import edu.byu.cs.controller.exception.BadRequestException;
 import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.controller.exception.PriorRepoClaimBlockageException;
+import edu.byu.cs.controller.exception.UnauthorizedException;
+import edu.byu.cs.controller.exception.WordOfWisdomViolationException;
 import edu.byu.cs.model.RepoUpdate;
 import edu.byu.cs.model.User;
 import edu.byu.cs.service.UserService;
-import edu.byu.cs.util.Serializer;
-import spark.Request;
-import spark.Response;
-import spark.Route;
+import io.javalin.http.Context;
+import io.javalin.http.Handler;
 
 import java.util.Collection;
 
-import static spark.Spark.halt;
-
 public class UserController {
-    public static final Route repoPatch = (req, res) -> {
-        User user = req.session().attribute("user");
-        applyRepoPatch(user.netId(), null, req, res);
-        return "Successfully updated repoUrl";
-    };
-
-    public static final Route repoPatchAdmin = (req, res) -> {
-        User admin = req.session().attribute("user");
-        String studentNetId = req.params(":netId");
-        applyRepoPatch(studentNetId, admin.netId(), req, res);
-        return "Successfully updated repoUrl for user: " + studentNetId;
-    };
-
-    public static final Route repoHistoryAdminGet = (req, res) -> {
-        String repoUrl = req.queryParams("repoUrl");
-        String netId = req.queryParams("netId");
-
-        Collection<RepoUpdate> updates;
-        try {
-            updates = UserService.adminGetRepoHistory(repoUrl, netId);
-        } catch (BadRequestException e) {
-            halt(422, "You must provide either a repoUrl or a netId");
-            return null;
-        } catch (InternalServerException e) {
-            halt(500, "There was an internal server error getting repo updates");
-            return null;
+    public static final Handler repoPatch = ctx -> {
+        User user = ctx.sessionAttribute("user");
+        if (user == null) {
+            throw new UnauthorizedException("No user credentials found");
         }
-
-        res.status(200);
-        res.type("application/json");
-
-        return Serializer.serialize(updates);
+        applyRepoPatch(user.netId(), null, ctx);
+        ctx.result("Successfully updated repoUrl");
     };
 
-    private static void applyRepoPatch(String studentNetId, String adminNetId, Request req, Response res) {
-        JsonObject jsonObject = new Gson().fromJson(req.body(), JsonObject.class);
+    public static final Handler repoPatchAdmin = ctx -> {
+        User admin = ctx.sessionAttribute("user");
+        if (admin == null) {
+            throw new UnauthorizedException("No user credentials found");
+        }
+        String studentNetId = ctx.pathParam("netId");
+        applyRepoPatch(studentNetId, admin.netId(), ctx);
+        ctx.result("Successfully updated repoUrl for user: " + studentNetId);
+    };
+
+    public static final Handler repoHistoryAdminGet = ctx -> {
+        String repoUrl = ctx.queryParam("repoUrl");
+        String netId = ctx.queryParam("netId");
+
+        Collection<RepoUpdate> updates = UserService.adminGetRepoHistory(repoUrl, netId);
+        ctx.json(updates);
+    };
+
+    private static void applyRepoPatch(String studentNetId, String adminNetId, Context ctx)
+            throws WordOfWisdomViolationException, InternalServerException, BadRequestException {
+        JsonObject jsonObject = new Gson().fromJson(ctx.body(), JsonObject.class);
         String repoUrl = new Gson().fromJson(jsonObject.get("repoUrl"), String.class);
-
-        try {
-            UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
-        } catch (BadRequestException e) {
-            halt(400, e.getMessage());
-        } catch (PriorRepoClaimBlockageException e) {
-            halt(418, e.getMessage());
-        } catch (InternalServerException e) {
-            halt(500, e.getMessage());
-        }
-
-        res.status(200);
+        UserService.updateRepoUrl(studentNetId, repoUrl, adminNetId);
     }
 }

@@ -1,66 +1,53 @@
 package edu.byu.cs.controller;
 
 import edu.byu.cs.canvas.CanvasException;
-import edu.byu.cs.controller.exception.BadRequestException;
-import edu.byu.cs.controller.exception.InternalServerException;
-import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.model.User;
 import edu.byu.cs.properties.ApplicationProperties;
 import edu.byu.cs.service.CasService;
-import spark.Route;
+import io.javalin.http.Handler;
+import io.javalin.http.HttpStatus;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import static edu.byu.cs.util.JwtUtils.generateToken;
-import static spark.Spark.halt;
 
 public class CasController {
-    public static final Route callbackGet = (req, res) -> {
-        String ticket = req.queryParams("ticket");
+    public static final Handler callbackGet = ctx -> {
+        String ticket = ctx.queryParam("ticket");
 
         User user;
         try {
             user = CasService.callback(ticket);
-        } catch (InternalServerException | DataAccessException e) {
-            halt(500);
-            return null;
-        } catch (BadRequestException e) {
-            halt(400);
-            return null;
         } catch (CanvasException e) {
             String errorUrlParam = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
-            res.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, 302);
-            halt(500);
-            return null;
+            ctx.redirect(ApplicationProperties.frontendUrl() + "/login?error=" + errorUrlParam, HttpStatus.FOUND);
+            return;
         }
 
         // FIXME: secure cookie with httpOnly
-        res.cookie("/", "token", generateToken(user.netId()), 14400, false, false);
-        res.redirect(ApplicationProperties.frontendUrl(), 302);
-        return null;
+        ctx.cookie("token", generateToken(user.netId()), 14400);
+        ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.FOUND);
     };
 
-    public static final Route loginGet = (req, res) -> {
+    public static final Handler loginGet = ctx -> {
         // check if already logged in
-        if (req.cookie("token") != null) {
-            res.redirect(ApplicationProperties.frontendUrl(), 302);
-            return null;
+        if (ctx.cookie("token") != null) {
+            ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.FOUND);
+            return;
         }
-        res.redirect(CasService.BYU_CAS_URL + "/login" + "?service=" + ApplicationProperties.casCallbackUrl());
-        return null;
+        ctx.redirect(CasService.BYU_CAS_URL + "/login" + "?service=" + ApplicationProperties.casCallbackUrl());
     };
 
-    public static final Route logoutPost = (req, res) -> {
-        if (req.cookie("token") == null) {
-            res.redirect(ApplicationProperties.frontendUrl(), 401);
-            return null;
+    public static final Handler logoutPost = ctx -> {
+        if (ctx.cookie("token") == null) {
+            ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.UNAUTHORIZED);
+            return;
         }
 
         // TODO: call cas logout endpoint with ticket
-        res.removeCookie("/", "token");
-        res.redirect(ApplicationProperties.frontendUrl(), 200);
-        return null;
+        ctx.removeCookie("token", "/");
+        ctx.redirect(ApplicationProperties.frontendUrl(), HttpStatus.OK);
     };
 
 }

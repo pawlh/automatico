@@ -1,64 +1,92 @@
 package edu.byu.cs.server.endpointprovider;
 
-import spark.Filter;
-import spark.Route;
+import io.javalin.http.Handler;
 
 public interface EndpointProvider {
 
     // Wildcard endpoints
 
-    Filter beforeAll();
-    Filter afterAll();
+    Handler beforeAll();
 
-    Route defaultGet();
+    Handler afterAll();
+
+    Handler defaultGet();
+
+    Handler defaultOptions();
 
     // AdminController
 
-    Route usersGet();
-    Route testModeGet();
-    Route commitAnalyticsGet();
-    Route honorCheckerZipGet();
-    Route sectionsGet();
+    Handler usersGet();
+
+    Handler testModeGet();
+
+    Handler commitAnalyticsGet();
+
+    Handler honorCheckerZipGet();
+
+    Handler sectionsGet();
 
     // AuthController
 
-    Filter verifyAuthenticatedMiddleware();
-    Filter verifyAdminMiddleware();
-    Route meGet();
+    Handler verifyAuthenticatedMiddleware();
+
+    Handler verifyAdminMiddleware();
+
+    Handler meGet();
 
     // CasController
 
-    Route callbackGet();
-    Route loginGet();
-    Route logoutPost();
+    Handler callbackGet();
+
+    Handler loginGet();
+
+    Handler logoutPost();
 
     // ConfigController
 
-    Route getConfigAdmin();
-    Route getConfigStudent();
-    Route updateLivePhases();
-    Route scheduleShutdown();
-    Route updateBannerMessage();
-    Route updateCourseIdsPost();
-    Route updateCourseIdsUsingCanvasGet();
-    Route updatePenalties();
+    Handler getConfigAdmin();
+
+    Handler getConfigStudent();
+
+    Handler updateLivePhases();
+
+    Handler scheduleShutdown();
+
+    Handler updateBannerMessage();
+
+    Handler updateCourseIdsPost();
+
+    Handler updateCourseIdsUsingCanvasGet();
+
+    Handler updatePenalties();
 
     // SubmissionController
 
-    Route submitPost();
-    Route adminRepoSubmitPost();
-    Route submitGet();
-    Route latestSubmissionForMeGet();
-    Route submissionXGet();
-    Route latestSubmissionsGet();
-    Route submissionsActiveGet();
-    Route studentSubmissionsGet();
-    Route approveSubmissionPost();
-    Route submissionsReRunPost();
+    Handler submitPost();
+
+    Handler adminRepoSubmitPost();
+
+    Handler submitGet();
+
+    Handler latestSubmissionForMeGet();
+
+    Handler submissionXGet();
+
+    Handler latestSubmissionsGet();
+
+    Handler submissionsActiveGet();
+
+    Handler studentSubmissionsGet();
+
+    Handler approveSubmissionPost();
+
+    Handler submissionsReRunPost();
 
     // UserController
 
-    Route repoPatch();
-    Route repoPatchAdmin();
-    Route repoHistoryAdminGet();
+    Handler repoPatch();
+
+    Handler repoPatchAdmin();
+
+    Handler repoHistoryAdminGet();
 }

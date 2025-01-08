@@ -1,13 +1,19 @@
 package edu.byu.cs.server;
 
 import edu.byu.cs.controller.WebSocketController;
+import edu.byu.cs.controller.exception.*;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
+import io.javalin.Javalin;
+import io.javalin.http.ExceptionHandler;
+import io.javalin.http.HandlerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static spark.Spark.*;
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Server {
+
+    private Javalin app;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Server.class);
     private final EndpointProvider provider;
@@ -23,101 +29,128 @@ public class Server {
     }
 
     private int setupEndpoints(int port) {
-        port(port);
+        app = Javalin.create(config -> {
+                    config.staticFiles.add("/frontend/dist");
 
-        webSocket("/ws", WebSocketController.class);
-        webSocketIdleTimeoutMillis(300000);
+                    config.jsonMapper(new SerializerAdapter());
 
-        staticFiles.location("/frontend/dist");
+                    config.router.apiBuilder(() -> {
+                        before(provider.beforeAll());
 
-        before(provider.beforeAll());
+                        path("/auth", () -> {
+                            get("/callback", provider.callbackGet());
+                            get("/login", provider.loginGet());
 
-        path("/auth", () -> {
-            get("/callback", provider.callbackGet());
-            get("/login", provider.loginGet());
+                            // all routes after this point require authentication
+                            post("/logout", provider.logoutPost());
+                        });
 
-            // all routes after this point require authentication
-            post("/logout", provider.logoutPost());
-        });
+                        path("/api", () -> {
+                            before("/*", ctx -> {
+                                if (ctx.method() != HandlerType.OPTIONS) provider.verifyAuthenticatedMiddleware().handle(ctx);
+                            });
 
-        path("/api", () -> {
-            before("/*", (req, res) -> {
-                if (!req.requestMethod().equals("OPTIONS")) provider.verifyAuthenticatedMiddleware().handle(req, res);
-            });
+                            patch("/repo", provider.repoPatch());
 
-            patch("/repo", provider.repoPatch());
+                            get("/submit", provider.submitGet());
+                            post("/submit", provider.submitPost());
 
-            get("/submit", provider.submitGet());
-            post("/submit", provider.submitPost());
+                            get("/latest", provider.latestSubmissionForMeGet());
 
-            get("/latest", provider.latestSubmissionForMeGet());
+                            get("/submission", provider.submissionXGet());
+                            get("/submission/{phase}", provider.submissionXGet());
 
-            get("/submission", provider.submissionXGet());
-            get("/submission/:phase", provider.submissionXGet());
+                            get("/me", provider.meGet());
 
-            get("/me", provider.meGet());
+                            get("/config", provider.getConfigStudent());
 
-            get("/config", provider.getConfigStudent());
+                            path("/admin", () -> {
+                                before("/*", ctx -> {
+                                    if (ctx.method() != HandlerType.OPTIONS) provider.verifyAdminMiddleware().handle(ctx);
+                                });
 
-            path("/admin", () -> {
-                before("/*", (req, res) -> {
-                    if (!req.requestMethod().equals("OPTIONS")) provider.verifyAdminMiddleware().handle(req, res);
-                });
+                                patch("/repo/{netId}", provider.repoPatchAdmin());
 
-                patch("/repo/:netId", provider.repoPatchAdmin());
+                                get("/repo/history", provider.repoHistoryAdminGet());
 
-                get("/repo/history", provider.repoHistoryAdminGet());
+                                get("/users", provider.usersGet());
 
-                get("/users", provider.usersGet());
+                                post("/submit", provider.adminRepoSubmitPost());
 
-                post("/submit", provider.adminRepoSubmitPost());
+                                path("/submissions", () -> {
+                                    post("/approve", provider.approveSubmissionPost());
 
-                path("/submissions", () -> {
-                    post("/approve", provider.approveSubmissionPost());
+                                    get("/latest", provider.latestSubmissionsGet());
 
-                    get("/latest", provider.latestSubmissionsGet());
+                                    get("/latest/{count}", provider.latestSubmissionsGet());
 
-                    get("/latest/:count", provider.latestSubmissionsGet());
+                                    get("/active", provider.submissionsActiveGet());
 
-                    get("/active", provider.submissionsActiveGet());
+                                    get("/student/{netId}", provider.studentSubmissionsGet());
 
-                    get("/student/:netId", provider.studentSubmissionsGet());
+                                    post("/rerun", provider.submissionsReRunPost());
+                                });
 
-                    post("/rerun", provider.submissionsReRunPost());
-                });
+                                get("/test_mode", provider.testModeGet());
 
-                get("/test_mode", provider.testModeGet());
+                                get("/analytics/commit", provider.commitAnalyticsGet());
 
-                get("/analytics/commit", provider.commitAnalyticsGet());
+                                get("/analytics/commit/{option}", provider.commitAnalyticsGet());
 
-                get("/analytics/commit/:option", provider.commitAnalyticsGet());
+                                get("/honorChecker/zip/{section}", provider.honorCheckerZipGet());
 
-                get("/honorChecker/zip/:section", provider.honorCheckerZipGet());
+                                get("/sections", provider.sectionsGet());
 
-                get("/sections", provider.sectionsGet());
+                                path("/config", () -> {
+                                    get("", provider.getConfigAdmin());
 
-                path("/config", () -> {
-                    get("", provider.getConfigAdmin());
+                                    post("/phases", provider.updateLivePhases());
+                                    post("/phases/shutdown", provider.scheduleShutdown());
 
-                    post("/phases", provider.updateLivePhases());
-                    post("/phases/shutdown", provider.scheduleShutdown());
-                    post("/banner", provider.updateBannerMessage());
+                                    post("/banner", provider.updateBannerMessage());
 
-                    post("/courseIds", provider.updateCourseIdsPost());
-                    get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
+                                    post("/courseIds", provider.updateCourseIdsPost());
+                                    get("/courseIds", provider.updateCourseIdsUsingCanvasGet());
 
-                    post("/penalties", provider.updatePenalties());
-                });
-            });
-        });
+                                    post("/penalties", provider.updatePenalties());
+                                });
+                            });
+                        });
 
-        // spark's notFound method does not work
-        get("/*", provider.defaultGet());
+                        get("/*", provider.defaultGet());
 
-        after(provider.afterAll());
+                        after(provider.afterAll());
+                    });
+                })
 
-        init();
+                .options("/*", provider.defaultOptions())
 
-        return port();
+                .ws("/ws", (wsConfig) -> {
+                    wsConfig.onError(WebSocketController::onError);
+                    wsConfig.onMessage(WebSocketController::onMessage);
+                })
+
+                .exception(BadRequestException.class, haltWithCode(400))
+                .exception(UnauthorizedException.class, haltWithCode(401))
+                .exception(ResourceForbiddenException.class, haltWithCode(403))
+                .exception(ResourceNotFoundException.class, haltWithCode(404))
+                .exception(WordOfWisdomViolationException.class, haltWithCode(418))
+                .exception(UnprocessableEntityException.class, haltWithCode(422))
+                .exception(Exception.class, haltWithCode(500))
+
+                .start(port);
+
+        return app.port();
+    }
+
+    private static <E extends Exception> ExceptionHandler<E> haltWithCode(int statusCode) {
+        return (e, ctx) -> {
+            ctx.status(statusCode);
+            if (e.getMessage() != null) {
+                ctx.result(e.getMessage());
+            } else {
+                ctx.result("An unknown %d error occurred.".formatted(statusCode));
+            }
+        };
     }
 }

@@ -3,29 +3,30 @@ package edu.byu.cs.controller;
 import edu.byu.cs.dataAccess.DataAccessException;
 import edu.byu.cs.util.JwtUtils;
 import edu.byu.cs.util.Serializer;
-import org.eclipse.jetty.websocket.api.CloseException;
+import io.javalin.websocket.WsErrorContext;
+import io.javalin.websocket.WsMessageContext;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketError;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
-import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-@WebSocket
 public class WebSocketController {
     private static final Logger LOGGER = LoggerFactory.getLogger(WebSocketController.class);
 
-    @OnWebSocketError
-    public void onError(Session session, Throwable t) {
-        if (!(t instanceof CloseException))
-            LOGGER.error("WebSocket error: ", t);
+    public static void onError(WsErrorContext ctx) {
+        if (!(ctx.error() instanceof IOException)) {
+            LOGGER.error("WebSocket error: ", ctx.error());
+        }
     }
 
-    @OnWebSocketMessage
-    public void onMessage(Session session, String message) {
+    public static void onMessage(WsMessageContext ctx) {
+        Session session = ctx.session;
+        String message = ctx.message();
         String netId;
+        ctx.enableAutomaticPings(20, TimeUnit.SECONDS);
         try {
             netId = JwtUtils.validateToken(message);
         } catch (Exception e) {
@@ -42,8 +43,7 @@ public class WebSocketController {
             return;
         }
 
-        if (TrafficController.sessions.get(netId).contains(session))
-            return;
+        if (TrafficController.sessions.get(netId).contains(session)) return;
 
         TrafficController.sessions.get(netId).add(session);
         try {
@@ -76,12 +76,7 @@ public class WebSocketController {
      * @param message the error message
      */
     public static void sendError(Session session, String message) {
-        send(
-                session,
-                Map.of(
-                        "type", "error",
-                        "message", message
-                ));
+        send(session, Map.of("type", "error", "message", message));
     }
 
 

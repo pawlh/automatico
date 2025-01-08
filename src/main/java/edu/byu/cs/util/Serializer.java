@@ -31,12 +31,28 @@ public class Serializer {
         }
     }
 
+    public static String serialize(Object obj, Type type) {
+        try {
+            return GSON.toJson(obj, type);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
     public static <T> T deserialize(JsonElement jsonElement, Class<T> classOfT) {
         return deserialize(jsonElement.toString(), classOfT);
     }
     public static <T> T deserialize(String jsonStr, Class<T> classOfT) {
         try {
             return GSON.fromJson(jsonStr, classOfT);
+        } catch (Exception e) {
+            throw new SerializationException(e);
+        }
+    }
+
+    public static <T> T deserialize(String jsonStr, Type targetType) {
+        try {
+            return GSON.fromJson(jsonStr, targetType);
         } catch (Exception e) {
             throw new SerializationException(e);
         }

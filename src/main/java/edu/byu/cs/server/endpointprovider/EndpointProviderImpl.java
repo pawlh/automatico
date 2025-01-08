@@ -2,210 +2,214 @@ package edu.byu.cs.server.endpointprovider;
 
 import edu.byu.cs.controller.*;
 import edu.byu.cs.properties.ApplicationProperties;
-import spark.Filter;
-import spark.Route;
+
+import io.javalin.http.Handler;
+import io.javalin.http.HttpStatus;
 
 public class EndpointProviderImpl implements EndpointProvider {
 
     // Wildcard endpoints
 
     @Override
-    public Filter beforeAll() {
-        return (request, response) -> {
-            response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
-            response.header("Access-Control-Allow-Credentials", "true");
-            response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
+    public Handler beforeAll() {
+        return ctx -> {
+            ctx.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
+            ctx.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+            ctx.header("Access-Control-Allow-Credentials", "true");
+            ctx.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
         };
     }
 
     @Override
-    public Filter afterAll() {
-        return (req, res) -> {};
+    public Handler afterAll() {
+        return ctx -> {};
     }
 
     @Override
-    public Route defaultGet() {
-        return (req, res) -> {
-            if (req.pathInfo().equals("/ws"))
-                return null;
-
-            String urlParams = req.queryString();
-            urlParams = urlParams == null ? "" : "?" + urlParams;
-            res.redirect("/" + urlParams, 302);
-            return null;
+    public Handler defaultGet() {
+        return ctx -> {
+            if (!ctx.path().equals("/ws")) {
+                String urlParams = ctx.queryString();
+                urlParams = urlParams == null ? "" : "?" + urlParams;
+                ctx.redirect("/" + urlParams, HttpStatus.FOUND);
+            }
         };
+    }
+
+    @Override
+    public Handler defaultOptions() {
+        return ctx -> {};
     }
 
     // AdminController
 
     @Override
-    public Route usersGet() {
+    public Handler usersGet() {
         return AdminController.usersGet;
     }
 
     @Override
-    public Route testModeGet() {
+    public Handler testModeGet() {
         return AdminController.testModeGet;
     }
 
     @Override
-    public Route commitAnalyticsGet() {
+    public Handler commitAnalyticsGet() {
         return AdminController.commitAnalyticsGet;
     }
 
     @Override
-    public Route honorCheckerZipGet() {
+    public Handler honorCheckerZipGet() {
         return AdminController.honorCheckerZipGet;
     }
 
     @Override
-    public Route sectionsGet() {
+    public Handler sectionsGet() {
         return AdminController.sectionsGet;
     }
 
     // AuthController
 
     @Override
-    public Filter verifyAuthenticatedMiddleware() {
+    public Handler verifyAuthenticatedMiddleware() {
         return AuthController.verifyAuthenticatedMiddleware;
     }
 
     @Override
-    public Filter verifyAdminMiddleware() {
+    public Handler verifyAdminMiddleware() {
         return AuthController.verifyAdminMiddleware;
     }
 
     @Override
-    public Route meGet() {
+    public Handler meGet() {
         return AuthController.meGet;
     }
 
     // CasController
 
     @Override
-    public Route callbackGet() {
+    public Handler callbackGet() {
         return CasController.callbackGet;
     }
 
     @Override
-    public Route loginGet() {
+    public Handler loginGet() {
         return CasController.loginGet;
     }
 
     @Override
-    public Route logoutPost() {
+    public Handler logoutPost() {
         return CasController.logoutPost;
     }
 
     // ConfigController
 
     @Override
-    public Route getConfigAdmin() {
+    public Handler getConfigAdmin() {
         return ConfigController.getConfigAdmin;
     }
 
     @Override
-    public Route getConfigStudent() {
+    public Handler getConfigStudent() {
         return ConfigController.getConfigStudent;
     }
 
     @Override
-    public Route updateLivePhases() {
+    public Handler updateLivePhases() {
         return ConfigController.updateLivePhases;
     }
 
     @Override
-    public Route scheduleShutdown() {
+    public Handler scheduleShutdown() {
         return ConfigController.scheduleShutdown;
     }
 
     @Override
-    public Route updateBannerMessage() {
+    public Handler updateBannerMessage() {
         return ConfigController.updateBannerMessage;
     }
 
     @Override
-    public Route updateCourseIdsPost() {
+    public Handler updateCourseIdsPost() {
         return ConfigController.updateCourseIdsPost;
     }
 
     @Override
-    public Route updateCourseIdsUsingCanvasGet() {
+    public Handler updateCourseIdsUsingCanvasGet() {
         return ConfigController.updateCourseIdsUsingCanvasGet;
     }
 
     @Override
-    public Route updatePenalties() {
+    public Handler updatePenalties() {
         return ConfigController.updatePenalties;
     }
 
     // SubmissionController
 
     @Override
-    public Route submitPost() {
+    public Handler submitPost() {
         return SubmissionController.submitPost;
     }
 
     @Override
-    public Route adminRepoSubmitPost() {
+    public Handler adminRepoSubmitPost() {
         return SubmissionController.adminRepoSubmitPost;
     }
 
     @Override
-    public Route submitGet() {
+    public Handler submitGet() {
         return SubmissionController.submitGet;
     }
 
     @Override
-    public Route latestSubmissionForMeGet() {
+    public Handler latestSubmissionForMeGet() {
         return SubmissionController.latestSubmissionForMeGet;
     }
 
     @Override
-    public Route submissionXGet() {
+    public Handler submissionXGet() {
         return SubmissionController.submissionXGet;
     }
 
     @Override
-    public Route latestSubmissionsGet() {
+    public Handler latestSubmissionsGet() {
         return SubmissionController.latestSubmissionsGet;
     }
 
     @Override
-    public Route submissionsActiveGet() {
+    public Handler submissionsActiveGet() {
         return SubmissionController.submissionsActiveGet;
     }
 
     @Override
-    public Route studentSubmissionsGet() {
+    public Handler studentSubmissionsGet() {
         return SubmissionController.studentSubmissionsGet;
     }
 
     @Override
-    public Route approveSubmissionPost() {
+    public Handler approveSubmissionPost() {
         return SubmissionController.approveSubmissionPost;
     }
 
     @Override
-    public Route submissionsReRunPost() {
+    public Handler submissionsReRunPost() {
         return SubmissionController.submissionsReRunPost;
     }
 
     // UserController
 
     @Override
-    public Route repoPatch() {
+    public Handler repoPatch() {
         return UserController.repoPatch;
     }
 
     @Override
-    public Route repoPatchAdmin() {
+    public Handler repoPatchAdmin() {
         return UserController.repoPatchAdmin;
     }
 
     @Override
-    public Route repoHistoryAdminGet() {
+    public Handler repoHistoryAdminGet() {
         return UserController.repoHistoryAdminGet;
     }
 }

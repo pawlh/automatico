@@ -4,9 +4,9 @@ import edu.byu.cs.analytics.CommitAnalyticsRouter;
 import edu.byu.cs.canvas.CanvasException;
 import edu.byu.cs.canvas.CanvasService;
 import edu.byu.cs.canvas.model.CanvasSection;
+import edu.byu.cs.controller.exception.ResourceNotFoundException;
 import edu.byu.cs.dataAccess.DaoService;
 import edu.byu.cs.dataAccess.DataAccessException;
-import edu.byu.cs.dataAccess.ItemNotFoundException;
 import edu.byu.cs.dataAccess.UserDao;
 import edu.byu.cs.honorChecker.HonorCheckerCompiler;
 import edu.byu.cs.model.User;
@@ -37,7 +37,7 @@ public class AdminService {
         return users;
     }
 
-    public static void updateUser(User user) throws DataAccessException, ItemNotFoundException {
+    public static void updateUser(User user) throws DataAccessException, ResourceNotFoundException {
         UserDao userDao = DaoService.getUserDao();
         User existingUser;
         try {
@@ -48,7 +48,7 @@ public class AdminService {
         }
 
         if (existingUser == null) {
-            ItemNotFoundException e = new ItemNotFoundException("user not found");
+            ResourceNotFoundException e = new ResourceNotFoundException("user not found");
             LOGGER.error("user not found", e);
             throw e;
         }

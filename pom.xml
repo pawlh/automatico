@@ -22,11 +22,11 @@
             <version>6.9.0.202403050737-r</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.sparkjava/spark-core -->
+        <!-- https://mvnrepository.com/artifact/io.javalin/javalin -->
         <dependency>
-            <groupId>com.sparkjava</groupId>
-            <artifactId>spark-core</artifactId>
-            <version>2.9.4</version>
+            <groupId>io.javalin</groupId>
+            <artifactId>javalin</artifactId>
+            <version>6.3.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
