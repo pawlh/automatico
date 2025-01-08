@@ -172,12 +172,7 @@ export const convertRubricTypeToHumanReadable = (rubricType: RubricType): string
 export const isPlausibleRepoUrl = (url: string): boolean => {
   // NOTE: This restriction on accepting "github.com" urls is arbitrary.
   // The back-end service can function with any link usable by `git clone <URL>`
-  return !!url && url.toLowerCase().includes("github.com");
-}
-
-export const assureHttpPrefix = (url: string): string => {
-  if (/^https?:\/\//.test(url)) return url;
-  return `https://${url}`;
+  return !!url && url.toLowerCase().includes("github.com")
 }
 
 export const submissionScoreDisplayText = (submission: Submission, inLine: boolean): string => {
