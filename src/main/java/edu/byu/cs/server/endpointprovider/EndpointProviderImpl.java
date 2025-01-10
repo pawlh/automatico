@@ -13,7 +13,7 @@ public class EndpointProviderImpl implements EndpointProvider {
     public Filter beforeAll() {
         return (request, response) -> {
             response.header("Access-Control-Allow-Headers", "Authorization,Content-Type");
-            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH,OPTIONS");
+            response.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS");
             response.header("Access-Control-Allow-Credentials", "true");
             response.header("Access-Control-Allow-Origin", ApplicationProperties.frontendUrl());
         };
@@ -195,13 +195,13 @@ public class EndpointProviderImpl implements EndpointProvider {
     // UserController
 
     @Override
-    public Route repoPatch() {
-        return UserController.repoPatch;
+    public Route setRepoUrl() {
+        return UserController.setRepoUrl;
     }
 
     @Override
-    public Route repoPatchAdmin() {
-        return UserController.repoPatchAdmin;
+    public Route setRepoUrlAdmin() {
+        return UserController.setRepoUrlAdmin;
     }
 
     @Override

@@ -4,6 +4,7 @@ import edu.byu.cs.controller.WebSocketController;
 import edu.byu.cs.server.endpointprovider.EndpointProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import spark.Spark;
 
 import static spark.Spark.*;
 
@@ -16,10 +17,18 @@ public class Server {
         this.provider = endpointProvider;
     }
 
+    public int start() {
+        return start(0);
+    }
+
     public int start(int desiredPort) {
         int chosenPort = setupEndpoints(desiredPort);
         LOGGER.info("Server started on port {}", chosenPort);
         return chosenPort;
+    }
+
+    public void stop() {
+        Spark.stop();
     }
 
     private int setupEndpoints(int port) {
@@ -45,7 +54,7 @@ public class Server {
                 if (!req.requestMethod().equals("OPTIONS")) provider.verifyAuthenticatedMiddleware().handle(req, res);
             });
 
-            patch("/repo", provider.repoPatch());
+            post("/repo", provider.setRepoUrl());
 
             get("/submit", provider.submitGet());
             post("/submit", provider.submitPost());
@@ -64,7 +73,7 @@ public class Server {
                     if (!req.requestMethod().equals("OPTIONS")) provider.verifyAdminMiddleware().handle(req, res);
                 });
 
-                patch("/repo/:netId", provider.repoPatchAdmin());
+                post("/repo/:netId", provider.setRepoUrlAdmin());
 
                 get("/repo/history", provider.repoHistoryAdminGet());
 
@@ -117,6 +126,8 @@ public class Server {
         after(provider.afterAll());
 
         init();
+
+        awaitInitialization();
 
         return port();
     }

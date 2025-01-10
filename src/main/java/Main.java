@@ -31,7 +31,7 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        new Server(endpointProvider).start(8080);
+        new Server(endpointProvider).start();
 
         try {
             SubmissionService.reRunSubmissionsInQueue();

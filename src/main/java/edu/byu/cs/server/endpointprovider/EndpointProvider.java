@@ -58,7 +58,7 @@ public interface EndpointProvider {
 
     // UserController
 
-    Route repoPatch();
-    Route repoPatchAdmin();
+    Route setRepoUrl();
+    Route setRepoUrlAdmin();
     Route repoHistoryAdminGet();
 }
